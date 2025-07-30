@@ -1,0 +1,77 @@
+{
+  "evaluator_id": "test_junior",
+  "evaluator_role": "junior",
+  "timestamp": "2025-07-21T14:50:49.979743",
+  "score": 0.6,
+  "issues": [
+    {
+      "description": "Uses complex word 'facilitates' instead of 'helps' or 'provides'",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'facilitates' with 'helps' or 'provides'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses complex word 'provision' - could be simplified.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'provision' with 'delivery' or 'supply'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses complex word 'eligible' - consider 'able to'.",
+      "severity": "LOW",
+      "location": null,
+      "suggestion": "Replace 'eligible' with 'able to' or 'qualified'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses complex word 'instrumental' - could be more direct.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'instrumental' with 'important' or 'helpful'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Sentence 'The implementation of this program has been instrumental in ensuring equitable healthcare access.' is too long (22 words).",
+      "severity": "HIGH",
+      "location": null,
+      "suggestion": "Break into two shorter sentences. For example: 'This program is important for fair healthcare access. It helps ensure everyone can get the care they need.'",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses nominalization ('implementation') which weakens the active voice.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Rewrite to use active voice: 'Implementing this program...'",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "The phrase 'equitable healthcare access' is somewhat jargonistic. While not overly complex, 'fair access to healthcare' is clearer.",
+      "severity": "LOW",
+      "location": null,
+      "suggestion": "Replace 'equitable healthcare access' with 'fair access to healthcare'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    }
+  ],
+  "summary": "The text uses unnecessarily complex vocabulary and contains a long sentence, hindering readability. Simplifying the language and shortening sentences would improve compliance with plain language guidelines.",
+  "metadata": {
+    "source": "https://www.stylemanual.gov.au/writing-style/plain-language",
+    "tokens_used": 0
+  },
+  "sub_reports": []
+}

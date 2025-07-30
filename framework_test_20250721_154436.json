@@ -1,0 +1,68 @@
+{
+  "evaluator_id": "test_junior",
+  "evaluator_role": "junior",
+  "timestamp": "2025-07-21T15:44:36.468000",
+  "score": 0.6,
+  "issues": [
+    {
+      "description": "Uses formal and less common word 'facilitates' instead of 'helps' or 'provides'.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'facilitates' with 'helps' or 'provides'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses formal word 'provision' which can be simplified.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'provision' with 'delivery' or 'access'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses formal word 'individuals' instead of 'people'.",
+      "severity": "LOW",
+      "location": null,
+      "suggestion": "Replace 'individuals' with 'people'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses formal word 'utilize' instead of 'use'.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'utilize' with 'use'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses formal word 'instrumental' which is less direct.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'instrumental' with 'important' or 'helped'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses 'equitable healthcare access' which is slightly abstract. Could be more concrete.",
+      "severity": "LOW",
+      "location": null,
+      "suggestion": "Consider rephrasing to 'fair access to healthcare' or 'healthcare for everyone'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-style/plain-language",
+      "quote": null,
+      "metadata": {}
+    }
+  ],
+  "summary": "The text uses unnecessarily formal language and could be more direct. Simplifying word choices would improve readability and align better with plain language principles.",
+  "metadata": {
+    "source": "https://www.stylemanual.gov.au/writing-style/plain-language",
+    "tokens_used": 0
+  },
+  "sub_reports": []
+}

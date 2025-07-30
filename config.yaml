@@ -1,0 +1,142 @@
+# config/evaluation_config.yaml
+# Main configuration for the speech evaluation framework
+
+# Model configuration - which models to use for different roles
+models:
+  junior:
+    provider: "google"  # google, openai, anthropic
+    model: "gemma-3-27b-it"  # Free tier via AI Studio, GPT-4 level performance
+    temperature: 0.3
+    max_tokens: 2000
+  
+  senior:
+    provider: "openai"
+    model: "gpt-4o-mini"  # Cost-effective for aggregation
+    temperature: 0.5
+    max_tokens: 4000
+  
+  editor:
+    provider: "openai"
+    model: "gpt-4o"  # Best model for final synthesis
+    temperature: 0.7
+    max_tokens: 8000
+
+# Concurrency and rate limiting
+performance:
+  max_concurrent_juniors: 10  # Max parallel page evaluations
+  rate_limit:
+    requests_per_minute: 60
+    burst_size: 20
+  request_timeout: 30  # seconds
+  
+# Caching configuration
+cache:
+  enabled: true
+  ttl_hours: 24  # How long to cache fetched pages
+  max_size_mb: 100
+  storage_path: "./cache"
+
+# Report configuration
+reports:
+  junior:
+    verbosity: "detailed"  # minimal, standard, detailed
+    include_quotes: true
+    max_issues_per_page: 10
+  
+  senior:
+    verbosity: "standard"
+    consolidate_similar: true
+    priority_threshold: 0.7  # Only include issues above this severity
+  
+  editor:
+    format: "executive"  # executive, detailed, technical
+    max_recommendations: 5
+    include_links: true
+
+# Style Guide evaluation settings
+style_guide:
+  base_url: "https://www.stylemanual.gov.au"
+  sections:
+    - name: "Writing and designing content"
+      pages:
+        - "/content-types/content-types"
+        - "/writing-style/plain-language"
+        - "/structuring-content/headings"
+    
+    - name: "Accessibility and inclusion"
+      pages:
+        - "/accessibility-inclusion/accessibility"
+        - "/accessibility-inclusion/inclusive-language"
+        - "/accessibility-inclusion/languages"
+    
+    - name: "Grammar and punctuation"
+      pages:
+        - "/grammar-punctuation/punctuation"
+        - "/grammar-punctuation/grammar"
+    
+    - name: "Referencing"
+      pages:
+        - "/referencing/referencing"
+        - "/referencing/links"
+
+# Brand tone evaluation settings
+brand_tone:
+  documents:
+    - name: "Services Australia Strategy 2030"
+      url: "https://www.servicesaustralia.gov.au/strategy-2030"
+      type: "pdf"
+      
+    - name: "Brand Voice Guidelines"
+      url: "https://www.servicesaustralia.gov.au/brand-guidelines"
+      type: "web"
+      
+    - name: "Customer Service Charter"
+      url: "https://www.servicesaustralia.gov.au/customer-service-charter"
+      type: "web"
+  
+  tone_attributes:
+    - "helpful"
+    - "clear"
+    - "respectful"
+    - "accessible"
+    - "professional"
+    - "empathetic"
+
+# Fact checking settings
+fact_check:
+  services_registry: "./config/services_registry.yaml"
+  
+  # Placeholder for Rules as Code integration
+  rules_engine:
+    enabled: false
+    endpoint: "https://rules.gov.au/api/v1"
+    
+  # URL checking configuration
+  url_checker:
+    follow_redirects: true
+    check_archived: false
+    timeout: 15
+
+# Output formatting
+output:
+  formats:
+    - "markdown"
+    - "json"
+    - "html"
+  
+  markdown:
+    include_toc: true
+    use_tables: true
+    highlight_severity: true
+    
+# Logging and monitoring
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "./logs/evaluation.log"
+  max_size_mb: 50
+  retention_days: 30
+  
+  # Track costs
+  cost_tracking:
+    enabled: true
+    alert_threshold_usd: 10.0

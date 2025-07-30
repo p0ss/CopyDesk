@@ -1,0 +1,68 @@
+{
+  "evaluator_id": "test_junior",
+  "evaluator_role": "junior",
+  "timestamp": "2025-07-21T14:52:53.870819",
+  "score": 0.65,
+  "issues": [
+    {
+      "description": "Uses formal and less common word 'facilitates' instead of 'helps' or 'provides'.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'facilitates' with 'helps' or 'provides'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/plain-language-and-word-choice",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses formal word 'provision' which can be simplified.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'provision' with 'delivery' or 'access'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/plain-language-and-word-choice",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses complex word 'individuals' instead of 'people'.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'individuals' with 'people'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/plain-language-and-word-choice",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses formal word 'utilize' instead of 'use'.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'utilize' with 'use'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/plain-language-and-word-choice",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Uses formal word 'instrumental' which is less direct.",
+      "severity": "MEDIUM",
+      "location": null,
+      "suggestion": "Replace 'instrumental' with 'important' or 'helped'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/plain-language-and-word-choice",
+      "quote": null,
+      "metadata": {}
+    },
+    {
+      "description": "Phrase 'equitable healthcare access' is somewhat abstract. Could be more concrete.",
+      "severity": "LOW",
+      "location": null,
+      "suggestion": "Consider rephrasing to 'fair access to healthcare' or 'healthcare for everyone'.",
+      "source_url": "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/plain-language-and-word-choice",
+      "quote": null,
+      "metadata": {}
+    }
+  ],
+  "summary": "The text uses unnecessarily formal language and complex vocabulary, hindering readability. Simplifying word choices would improve clarity and align with plain language principles.",
+  "metadata": {
+    "source": "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/plain-language-and-word-choice",
+    "tokens_used": 0
+  },
+  "sub_reports": []
+}
