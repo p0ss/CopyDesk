@@ -16,6 +16,8 @@ class StyleGuideSectionLead(SeniorEvaluator):
     def __init__(self, evaluator_id: str, section_name: str, config: Dict[str, Any]):
         super().__init__(evaluator_id, config)
         self.section_name = section_name
+        self.on_page_started = None
+        self.on_page_completed = None
 
     async def _get_junior_evaluators(self, context: Dict[str, Any]) -> List[Tuple]:
         """Create junior evaluators for each page in this section"""
