@@ -2,6 +2,8 @@
 
 A hierarchical evaluation system for checking government content compliance with style guides, brand tone, and factual accuracy. Features a modern Material Design web interface for real-time content evaluation with live progress tracking and formatted reports.
 
+![CopyDesk web interface](img/screenshot.png)
+
 ## Overview
 
 This framework evaluates content across three key dimensions:
