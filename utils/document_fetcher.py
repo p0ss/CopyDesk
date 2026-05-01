@@ -1,12 +1,12 @@
 # utils/document_fetcher.py
 """
-Document fetcher with intelligent caching and content extraction
+Document fetching utilities with caching support
 """
 
 import aiohttp
 from bs4 import BeautifulSoup
-import hashlib
 import json
+import hashlib
 from pathlib import Path
 from datetime import datetime, timedelta
 import logging
@@ -17,260 +17,226 @@ logger = logging.getLogger(__name__)
 
 
 class DocumentFetcher:
-    """Fetches and caches web documents with intelligent content extraction"""
-
+    """Fetches and caches web pages and documents"""
+    
     def __init__(self, cache_dir: str = "./cache", cache_ttl_hours: int = 24):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(exist_ok=True)
         self.cache_ttl = timedelta(hours=cache_ttl_hours)
-
+        self.session = None
+        
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        return self
+        
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+            
     def _get_cache_path(self, url: str) -> Path:
-        """Generate cache file path from URL"""
+        """Generate cache file path for URL"""
         url_hash = hashlib.md5(url.encode()).hexdigest()
         return self.cache_dir / f"{url_hash}.json"
-
+        
     def _is_cache_valid(self, cache_path: Path) -> bool:
-        """Check if cached content is still valid"""
+        """Check if cached file is still valid"""
         if not cache_path.exists():
             return False
-
+            
         # Check age
-        modified_time = datetime.fromtimestamp(cache_path.stat().st_mtime)
-        return datetime.now() - modified_time < self.cache_ttl
-
-    async def fetch_page(self, url: str, force_refresh: bool = False) -> Dict[str, Any]:
-        """
-        Fetch a page and extract relevant content
-
-        Returns dict with:
-        - url: original URL
-        - title: page title
-        - raw_html: complete HTML (for debugging)
-        - main_content: extracted main content text
-        - sections: parsed sections with headings
-        - metadata: extraction metadata
-        - cached: whether this came from cache
-        - fetched_at: timestamp
-        """
+        mtime = datetime.fromtimestamp(cache_path.stat().st_mtime)
+        age = datetime.now() - mtime
+        
+        return age < self.cache_ttl
+        
+    async def fetch_page(self, url: str, use_cache: bool = True) -> Dict[str, Any]:
+        """Fetch and parse a web page"""
         cache_path = self._get_cache_path(url)
-
+        
         # Check cache first
-        if not force_refresh and self._is_cache_valid(cache_path):
-            logger.info(f"Using cached content for {url}")
+        if use_cache and self._is_cache_valid(cache_path):
+            logger.debug(f"Using cached content for {url}")
             with open(cache_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                data['cached'] = True
-                return data
-
+                return json.load(f)
+                
         # Fetch fresh content
         logger.info(f"Fetching fresh content from {url}")
-
+        
+        # Use a temporary session if we don't have one
+        temp_session = None
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=30) as response:
-                    html = await response.text()
-
-            # Parse and extract content
-            soup = BeautifulSoup(html, 'html.parser')
-
-            # Extract title
-            title = soup.find('title')
-            title_text = title.text.strip() if title else "No title"
-
-            # Try different content extraction strategies
-            main_content = None
-            content_selectors = [
-                ('main', {}),
-                ('article', {}),
-                ('div', {'class': 'content'}),
-                ('div', {'class': 'main-content'}),
-                ('div', {'id': 'content'}),
-                ('div', {'role': 'main'})
-            ]
-
-            for tag, attrs in content_selectors:
-                element = soup.find(tag, attrs)
-                if element:
-                    main_content = element
-                    break
-
-            if not main_content:
-                # Fallback: use body
-                main_content = soup.find('body')
-
-            # Clean up content
-            if main_content:
-                # Remove navigation, scripts, etc.
-                for tag in main_content.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
-                    tag.decompose()
-
-            # Extract structured sections
-            sections = self._extract_sections(main_content)
-
-            # Get plain text
-            main_text = main_content.get_text(separator='\n', strip=True) if main_content else ""
-
-            # Build result
-            result = {
-                "url": url,
-                "title": title_text,
-                "raw_html": html,
-                "main_content": main_text,
-                "sections": sections,
-                "metadata": {
-                    "content_length": len(main_text),
-                    "section_count": len(sections),
-                    "extraction_method": "BeautifulSoup"
-                },
-                "cached": False,
-                "fetched_at": datetime.now().isoformat()
-            }
-
-            # Cache the result
-            with open(cache_path, 'w', encoding='utf-8') as f:
-                json.dump(result, f, ensure_ascii=False, indent=2)
-
-            return result
-
-        except Exception as e:
-            logger.error(f"Error fetching {url}: {e}")
-            # Return a minimal error result
-            return {
-                "url": url,
-                "title": "Error",
-                "raw_html": "",
-                "main_content": f"Error fetching page: {str(e)}",
-                "sections": [],
-                "metadata": {"error": str(e)},
-                "cached": False,
-                "fetched_at": datetime.now().isoformat()
-            }
-
-    def _extract_sections(self, content_element) -> list:
-        """Extract sections with headings and content"""
-        if not content_element:
-            return []
-
-        sections = []
-        current_section = None
-
-        # Track what we've seen to avoid duplicates
-        seen_content = set()
-
-        for element in content_element.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'table']):
-            if element.name in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-                # Save previous section if it has content
-                if current_section and current_section['content'].strip():
-                    sections.append(current_section)
-
-                # Start new section
-                heading_text = element.get_text(strip=True)
-
-                # Skip duplicate headings or form-related headings
-                if heading_text in seen_content:
-                    current_section = None
-                    continue
-
-                seen_content.add(heading_text)
-
-                current_section = {
-                    'heading': heading_text,
-                    'level': element.name,
-                    'content': ''
-                }
-            elif current_section:
-                # Add content to current section
-                content_text = element.get_text(separator=' ', strip=True)
-
-                # Skip if we've seen this exact content before (duplicates)
-                if content_text in seen_content or len(content_text) < 10:
-                    continue
-
-                seen_content.add(content_text)
-
-                # Special handling for tables
-                if element.name == 'table':
-                    # Extract table as structured data
-                    rows = element.find_all('tr')
-                    if rows:
-                        table_text = "\n"
-                        for row in rows:
-                            cells = row.find_all(['td', 'th'])
-                            row_text = " | ".join(cell.get_text(strip=True) for cell in cells)
-                            table_text += row_text + "\n"
-                        current_section['content'] += table_text
-                else:
-                    current_section['content'] += content_text + " "
-
-        # Don't forget the last section
-        if current_section and current_section['content'].strip():
-            sections.append(current_section)
-
-        # Clean up sections - remove feedback forms
-        cleaned_sections = []
-        for section in sections:
-            # Skip feedback/form sections
-            if any(skip in section['heading'].lower() for skip in
-                   ['help us improve', 'feedback', 'do you work', 'email',
-                    'given name', 'family name', 'tell us']):
-                continue
-
-            # Clean up content
-            section['content'] = ' '.join(section['content'].split())  # Normalize whitespace
-            cleaned_sections.append(section)
-
-        return cleaned_sections
-
-    async def fetch_multiple(self, urls: list, max_concurrent: int = 5) -> Dict[str, Dict[str, Any]]:
-        """Fetch multiple pages concurrently"""
-        semaphore = asyncio.Semaphore(max_concurrent)
-
-        async def fetch_with_limit(url):
-            async with semaphore:
-                return await self.fetch_page(url)
-
-        results = await asyncio.gather(*[fetch_with_limit(url) for url in urls])
-
-        return {url: result for url, result in zip(urls, results)}
-
-    def clear_cache(self, older_than_hours: Optional[int] = None):
-        """Clear cache files"""
-        for cache_file in self.cache_dir.glob("*.json"):
-            if older_than_hours:
-                modified_time = datetime.fromtimestamp(cache_file.stat().st_mtime)
-                age_hours = (datetime.now() - modified_time).total_seconds() / 3600
-                if age_hours > older_than_hours:
-                    cache_file.unlink()
+            # Create session if needed
+            if not self.session:
+                temp_session = aiohttp.ClientSession()
+                session_to_use = temp_session
             else:
-                cache_file.unlink()
+                session_to_use = self.session
+                
+            async with session_to_use.get(url, timeout=30) as response:
+                response.raise_for_status()
+                html = await response.text()
+                
+            # Parse HTML
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            # Extract content based on Style Manual structure
+            page_data = self._parse_style_manual_page(soup, url)
+            
+            # Cache the result
+            if use_cache:
+                with open(cache_path, 'w', encoding='utf-8') as f:
+                    json.dump(page_data, f, indent=2)
+                    
+            return page_data
+            
+        except aiohttp.ClientError as e:
+            logger.error(f"Error fetching {url}: {e}")
+            # Return minimal data on error
+            return {
+                'url': url,
+                'title': 'Error fetching page',
+                'main_content': f'Error: {str(e)}',
+                'sections': [],
+                'error': str(e)
+            }
+        finally:
+            # Clean up temporary session if we created one
+            if temp_session:
+                await temp_session.close()
+            
+    def _parse_style_manual_page(self, soup: BeautifulSoup, url: str) -> Dict[str, Any]:
+        """Parse Australian Government Style Manual page structure"""
+        
+        # Get title
+        title = soup.find('h1')
+        title_text = title.get_text(strip=True) if title else 'Untitled'
+        
+        # Get main content area
+        main_content = soup.find('main') or soup.find('div', {'class': 'content'})
+        
+        if not main_content:
+            # Fallback to body
+            main_content = soup.find('body')
+            
+        # Extract sections
+        sections = []
+        
+        # Look for h2 and h3 headings with their content
+        for heading in main_content.find_all(['h2', 'h3']):
+            section_title = heading.get_text(strip=True)
+            
+            # Skip navigation/meta sections
+            if any(skip in section_title.lower() for skip in 
+                  ['on this page', 'help us improve', 'last updated', 'feedback']):
+                continue
+                
+            # Get content until next heading
+            content_parts = []
+            for sibling in heading.find_next_siblings():
+                if sibling.name in ['h2', 'h3']:
+                    break
+                    
+                # Extract text from various elements
+                if sibling.name == 'p':
+                    content_parts.append(sibling.get_text(strip=True))
+                elif sibling.name == 'ul':
+                    for li in sibling.find_all('li'):
+                        content_parts.append(f"• {li.get_text(strip=True)}")
+                elif sibling.name == 'ol':
+                    for i, li in enumerate(sibling.find_all('li'), 1):
+                        content_parts.append(f"{i}. {li.get_text(strip=True)}")
+                elif sibling.name == 'table':
+                    # Extract table content
+                    content_parts.append(self._parse_table(sibling))
+                elif sibling.name == 'blockquote':
+                    content_parts.append(f"Quote: {sibling.get_text(strip=True)}")
+                    
+            section_content = '\n'.join(content_parts)
+            
+            if section_content.strip():
+                sections.append({
+                    'heading': section_title,
+                    'content': section_content,
+                    'level': int(heading.name[1])  # h2 -> 2, h3 -> 3
+                })
+                
+        # Get all text content as fallback
+        all_text = main_content.get_text(separator='\n', strip=True) if main_content else ''
+        
+        return {
+            'url': url,
+            'title': title_text,
+            'main_content': all_text,
+            'sections': sections,
+            'fetched_at': datetime.now().isoformat()
+        }
+        
+    def _parse_table(self, table) -> str:
+        """Parse HTML table into readable text"""
+        rows = []
+        
+        # Get headers
+        headers = []
+        header_row = table.find('thead')
+        if header_row:
+            for th in header_row.find_all('th'):
+                headers.append(th.get_text(strip=True))
+                
+        if headers:
+            rows.append(' | '.join(headers))
+            rows.append('-' * len(' | '.join(headers)))
+            
+        # Get body rows
+        tbody = table.find('tbody') or table
+        for tr in tbody.find_all('tr'):
+            cells = []
+            for td in tr.find_all(['td', 'th']):
+                cells.append(td.get_text(strip=True))
+            if cells:
+                rows.append(' | '.join(cells))
+                
+        return '\n'.join(rows)
+        
+    async def clear_cache(self):
+        """Clear all cached files"""
+        for cache_file in self.cache_dir.glob('*.json'):
+            cache_file.unlink()
+        logger.info("Cache cleared")
+        
+    async def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics"""
+        cache_files = list(self.cache_dir.glob('*.json'))
+        total_size = sum(f.stat().st_size for f in cache_files)
+        
+        return {
+            'cache_dir': str(self.cache_dir),
+            'file_count': len(cache_files),
+            'total_size_mb': total_size / (1024 * 1024),
+            'ttl_hours': self.cache_ttl.total_seconds() / 3600
+        }
 
 
-# Example usage for testing
+# Example usage
 async def test_fetcher():
     """Test the document fetcher"""
     fetcher = DocumentFetcher()
-
-    # Test with a style guide page
-    url = "https://www.stylemanual.gov.au/writing-style/plain-language"
-
-    print(f"Fetching {url}...")
-    result = await fetcher.fetch_page(url)
-
-    print(f"\nTitle: {result['title']}")
-    print(f"Content length: {result['metadata']['content_length']} chars")
-    print(f"Sections found: {result['metadata']['section_count']}")
-    print(f"From cache: {result['cached']}")
-
-    # Show first few sections
-    print("\nFirst 3 sections:")
-    for section in result['sections'][:3]:
-        print(f"\n[{section['level']}] {section['heading']}")
-        print(f"Content preview: {section['content'][:200]}...")
-
-    # Test caching
-    print("\n\nFetching again (should use cache)...")
-    result2 = await fetcher.fetch_page(url)
-    print(f"From cache: {result2['cached']}")
+    
+    # Test URL
+    url = "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/plain-language-and-word-choice"
+    
+    print(f"Fetching: {url}")
+    page_data = await fetcher.fetch_page(url)
+    
+    print(f"\nTitle: {page_data['title']}")
+    print(f"Sections found: {len(page_data['sections'])}")
+    
+    for section in page_data['sections'][:3]:
+        print(f"\n{section['heading']}:")
+        print(f"{section['content'][:200]}...")
+        
+    # Check cache stats
+    stats = await fetcher.get_cache_stats()
+    print(f"\nCache stats: {stats}")
 
 
 if __name__ == "__main__":
